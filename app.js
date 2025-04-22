@@ -21,6 +21,18 @@ app.use('/movimientos', movimientoRoutes);
 const usuarioRoutes = require('./routes/usuarios');
 app.use('/usuarios', usuarioRoutes);
 
+const auditoriaRoutes = require('./routes/auditoria');
+app.use('/auditoria', auditoriaRoutes);
+
+const reportesRoutes = require('./routes/reportes');
+app.use('/reportes', reportesRoutes);
+
+const proveedoresRoutes = require('./routes/proveedores');
+app.use('/proveedores', proveedoresRoutes);
+
+const dashboardRoutes = require('./routes/dashboard');
+app.use('/dashboard', dashboardRoutes);
+
 // Error handling middleware (should be after all routes)
 const errorHandler = require('./middlewares/errorHandler');
 app.use(errorHandler);

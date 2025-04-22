@@ -1,4 +1,5 @@
 const Producto = require('../models/Producto');
+const logAuditoria = require('../utils/auditoriaLogger'); // Import the logger
 
 // List products with pagination and filters
 exports.listarProductos = async (req, res) => {
@@ -56,6 +57,15 @@ exports.crearProducto = async (req, res) => {
             fecha_ingreso: new Date()
         });
         await nuevoProducto.save();
+
+        await logAuditoria({
+            usuario: req.usuario._id,
+            accion: 'crear_producto',
+            entidad: 'producto',
+            entidadId: nuevoProducto._id,
+            detalle: req.body
+        });
+
         res.status(201).json(nuevoProducto);
     } catch (error) {
         res.status(500).json({ msg: 'Error creating product', error: error.message });
@@ -68,12 +78,13 @@ exports.actualizarProducto = async (req, res) => {
         const producto = await Producto.findById(req.params.id);
         if (!producto) return res.status(404).json({ msg: 'Product not found' });
 
+        const oldData = { ...producto._doc }; // Save old data for audit
+
         Object.assign(producto, req.body, {
             actualizado_por: req.usuario._id,
             fecha_actualización: new Date()
         });
 
-        // Add to historial_cambios
         producto.historial_cambios.push({
             fecha: new Date(),
             usuario: req.usuario._id,
@@ -81,6 +92,15 @@ exports.actualizarProducto = async (req, res) => {
         });
 
         await producto.save();
+
+        await logAuditoria({
+            usuario: req.usuario._id,
+            accion: 'actualizar_producto',
+            entidad: 'producto',
+            entidadId: producto._id,
+            detalle: { before: oldData, after: req.body }
+        });
+
         res.json(producto);
     } catch (error) {
         res.status(500).json({ msg: 'Error updating product', error: error.message });
@@ -92,6 +112,15 @@ exports.eliminarProducto = async (req, res) => {
     try {
         const producto = await Producto.findByIdAndDelete(req.params.id);
         if (!producto) return res.status(404).json({ msg: 'Product not found' });
+
+        await logAuditoria({
+            usuario: req.usuario._id,
+            accion: 'eliminar_producto',
+            entidad: 'producto',
+            entidadId: producto._id,
+            detalle: producto // Log the deleted product data
+        });
+
         res.json({ msg: 'Product deleted' });
     } catch (error) {
         res.status(500).json({ msg: 'Error deleting product', error: error.message });
