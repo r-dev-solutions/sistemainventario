@@ -1,14 +1,10 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
-// console.log('Mongo URI:', process.env.MONGO_URI); // This line is now hidden
-
-const connectDB = require('./config/database');
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: '*' })); // Explicitly allow all origins
 app.use(express.json());
 
 // Routes
